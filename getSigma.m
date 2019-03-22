@@ -7,9 +7,10 @@ else
 	feasample = fea;
 
 end
+
 % euclidean
 D = pdist(feasample);
 
-s = median(D)
+s = median(D);
 
 end

@@ -17,13 +17,12 @@ opt = mergeOptions(defaults, opt);
 % stochastic riemannian
 [n,d] = size(A);
 
-if isempty(X)
-	X = randn(d, k);
-	X = X ./ sqrt(sum(X.^2, 1));
-
-end
 
 problem.M = stiefelfactory(d,k);
+
+if isempty(X)
+	X = problem.M.rand();
+end
 
 problem.ncostterms = n; % see stochastic_pca
 

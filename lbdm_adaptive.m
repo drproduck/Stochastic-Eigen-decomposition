@@ -1,4 +1,4 @@
-function [X, info] = eigen_adaptivesgd(A,k, opt)
+function [X, info] = eigen_adaptivesgd(A,k, X, opt)
 
 defaults.stepsize = 0.001;
 defaults.b = 0.999;
@@ -15,8 +15,11 @@ opt = mergeOptions(defaults, opt);
 % initialize variables
 n = size(A,1);
 m = 10;
-X = randn(n, k);
-X = X ./ sqrt(sum(X.^2, 1));
+if isempty(X)
+	X = randn(n, k);
+	[X, ~] = qr(X, 0);
+
+end
 
 l = sparse(n,1);
 lh = sparse(n,1);
@@ -54,11 +57,11 @@ for t = 1 : outeriter
 		GGT = sum(G2, 2) ./ k;
 		GTG = sum(G2, 1) ./ n; 
 		l = opt.b*l + (1-opt.b)*GGT;
-		l = max(lh, l);
-		l = max(l, 1e-8);
+		lh = max(lh, l);
+		lh = max(lh, 1e-10);
 		r = opt.b*r + (1-opt.b)*GTG;
-		r = max(rh, r);
-		r = max(r, 1e-8);
+		rh = max(rh, r);
+		rh = max(rh, 1e-10);
 
 		L = sparse(1:n, 1:n, l.^(-1/4));
 		R = sparse(1:k, 1:k, r.^(-1/4));

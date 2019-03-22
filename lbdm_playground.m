@@ -3,14 +3,15 @@ clear;
 load('Orig.mat')
 rng(1234);
 
-[L, idx] = getSparseBipartite(fea, 1000, 3);
+[L, idx, D1, D2] = getSparseBipartite(fea, 1000, 3, 'uniform');
 [n,d] = size(L);
-k = 10;
+k = 11;
+nlabel = 10;
 npass = 10;
 
 % shared starting point
-X = randn(d,k);
-X = X ./ sqrt(sum(X.^2, 1));
+X_0 = randn(d,k);
+[X_0,~] = qr(X_0, 0);
 
 % clear opt;
 % opt.npass = 20;
@@ -25,30 +26,31 @@ X = X ./ sqrt(sum(X.^2, 1));
 % acc.khaet = sum(label == gnd) / n;
 
 
-clear opt;
-opt.npass = 10;
-opt.batchsize = 1000;
-opt.stepsize_init = 1e2;
-opt.stepsize_type = 'decay';
-tic;
-[X_hebb, info_hebb] = stochastic_hebbian(L, k, X, opt);
-time.hebb = toc;
-label = landmark_cluster(X_hebb, k, idx);
-label = bestMap(gnd, label);
-acc.hebb = sum(label == gnd) / n;
 
 
 clear opt
+opt.npass = 5;
 opt.batchsize = 1000;
-opt.stepsize_init = 0.01;
-opt.npass = 10;
 opt.stepsize_init = 1e2;
 tic;
-[X_sgd, info_sgd] = lbdm_sgd(L, k, X, opt);
+[X_sgd, info_sgd] = lbdm_sgd(L, k, X_0, opt);
 time.sgd = toc;
-label = landmark_cluster(X_sgd, k, idx);
+label = landmark_cluster(X_sgd, nlabel, idx);
 label = bestMap(gnd, label);
 acc.sgd = sum(label == gnd) / n;
+
+
+clear opt;
+opt.npass = 5;
+opt.batchsize = 1000;
+opt.stepsize_init = 1e2; % previous 1e2
+opt.stepsize_type = 'decay';
+tic;
+[X_hebb, info_hebb] = stochastic_hebbian(L, k, X_0, opt);
+time.hebb = toc;
+label = landmark_cluster(X_hebb, nlabel, idx);
+label = bestMap(gnd, label);
+acc.hebb = sum(label == gnd) / n;
 
 
 % clear opt;
@@ -62,9 +64,9 @@ acc.sgd = sum(label == gnd) / n;
 
 
 tic;
-[U,S,V] = svds(L);
+[U,S,V] = svds(L, k);
 time.svd = toc;
-label = landmark_cluster(V, k, idx);
+label = landmark_cluster(V, nlabel, idx);
 label = bestMap(gnd, label);
 acc.svd = sum(label == gnd) / n;
 
@@ -105,14 +107,18 @@ plot(1:length([info_sgd.metric]), bound*ones(size([info_sgd.metric])), '--', 'Di
 legend('Location', 'SouthEast');
 hold off;
 
+function X = postProcessEmbedding(X, D2)
+X = D2 * X;
 
-function label = landmark_cluster(V, k, idx)
+end
+
+function label = landmark_cluster(V, nlabel, idx)
 
 [n,~] = size(idx);
 
 V(:,1) = [];
 V = V ./ sqrt(sum(V .^2, 2));
-reps_labels = litekmeans(V, k, 'Distance', 'cosine', 'MaxIter', 100, 'Replicates', 10);
+reps_labels = litekmeans(V, nlabel, 'Distance', 'cosine', 'MaxIter', 100, 'Replicates', 10);
 
 label = zeros(n, 1);
 
