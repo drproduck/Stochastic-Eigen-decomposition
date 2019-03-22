@@ -6,9 +6,10 @@ if (size(fea,1) > 4000)
 else
 	feasample = fea;
 
+end
 % euclidean
 D = pdist(feasample);
 
-s = median(D);
+s = median(D)
 
 end

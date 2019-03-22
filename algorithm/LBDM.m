@@ -71,7 +71,7 @@ finalRes = opt.finalRes;
 select_method = opt.select_method;
 embed_method = opt.embed_method;
 cluster_method = opt.cluster_method;
-opt.fid = fid;
+fid = opt.fid;
 
 
 
@@ -172,7 +172,7 @@ elseif strcmp(affinity, 'gaussian')
 	elseif strcmp(select_method, 'kmeans')
 		sigma = mean(sqrt(VAR ./ lbcount));
 
-	elseif strcmp(select_method, 'random') || strcmp(select_method, '++')
+	elseif strcmp(select_method, 'uniform') || strcmp(select_method, '++')
 		sigma = getSigma(fea);
 
 	end
@@ -200,7 +200,8 @@ elseif strcmp(affinity, 'gaussian')
 
 		% manipulate index to efficiently create sparse matrix Z
 		% Z is now (normalized to sum 1) smallest r landmarks in each row
-%         dump = exp(-dump/(2.0*sigma^2));
+
+        dump = exp(-dump/(2.0*sigma^2));
 
 		Gidx = repmat((1:n)',1,s);
 		Gjdx = idx;
@@ -315,29 +316,6 @@ end
 
 fprintf(fid,'Done in %.2f seconds\n', toc);
 
-function s = getSigma(fea, nsamp)
-
-	if ~exist('nsamp', 'var')
-		nsamp = 4000;
-
-	end
-
-	n = size(fea, 1);
-
-	if (n > nsamp)
-		rperm = randperm(n, nsamp);
-		sample = fea(rperm, :);
-
-		D = pdist(sample);
-		
-	else
-		D = pdist(fea);
-
-	s = median(D);
-
-	end
-
-end
 
 end
 
