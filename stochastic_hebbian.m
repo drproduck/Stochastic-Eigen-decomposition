@@ -51,7 +51,7 @@ for epoch = 1:npass
 	
 	perm = randperm(n);
 	for s = 1:inneriter
-		tic;
+		loopstart = tic;
 		lower = (s - 1)*batchsize+1;
 		upper = min(s*batchsize, n);
 	
@@ -80,13 +80,13 @@ for epoch = 1:npass
 		stepsize = getStepsize(global_t, opt);
 
 		X = X + stepsize .* G;
-		ti = toc;
 
 		if mod(global_t, opt.checkperiod) == 0 || global_t == maxiter
+			ti = toc(loopstart);
 			info.iter(si) = global_t;
-			% info.cost(si) = norm(Y, 'fro') * (n/length(batch));
-			info.cost(si) = norm(A*X, 'fro');
-			fprintf('%4d		    %.2f	              %.2f\n', global_t, ti, info.cost(si));
+			info.cost(si) = norm(Y, 'fro') / size(batch,2);
+			% info.cost(si) = norm(A*X, 'fro');
+			fprintf('%4d		%5f	      %10e\n', global_t, ti, info.cost(si));
 			si = si + 1;
 
 	end
