@@ -32,26 +32,34 @@ npass = opt.npass;
 
 if isempty(X)
 	X = randn(d,k);
+	[X, ~] = qr(X, 0);
 
 end
 
-info.cost = zeros(npass, 1);
-info.iter = [1:npass];
-
 inneriter = ceil(n / batchsize);
+maxiter = inneriter*npass;
+saveiter = floor(maxiter / opt.checkperiod) + double(mod(maxiter,opt.checkperiod) ~= 0);
 
+
+info.cost = zeros(saveiter, 1);
+info.iter = zeros(saveiter, 1);
+
+fprintf('iter		time [s]		batch cost\n');
+
+si = 1; % save iter increment
 for epoch = 1:npass
 	
 	perm = randperm(n);
 	for s = 1:inneriter
+		tic;
 		lower = (s - 1)*batchsize+1;
 		upper = min(s*batchsize, n);
 	
 		batch = perm(lower:upper);
 
 		Abatch = A(batch,:);
-		G = Abatch*X;
-		G = Abatch'*G - X*G'*G;
+		Y = Abatch*X;
+		G = Abatch'*Y - X*(Y'*Y);
 	
 		if strcmp(opt.stepsize_type, 'khaet')
 			opt.epoch = epoch;
@@ -72,11 +80,18 @@ for epoch = 1:npass
 		stepsize = getStepsize(global_t, opt);
 
 		X = X + stepsize .* G;
+		ti = toc;
+
+		if mod(global_t, opt.checkperiod) == 0 || global_t == maxiter
+			info.iter(si) = global_t;
+			% info.cost(si) = norm(Y, 'fro') * (n/length(batch));
+			info.cost(si) = norm(A*X, 'fro');
+			fprintf('%4d		    %.2f	              %.2f\n', global_t, ti, info.cost(si));
+			si = si + 1;
 
 	end
 
-	info.cost(epoch) = norm(A*X, 'fro');
-	fprintf('cost = %.4f\n', info.cost(epoch));
+	end
 
 end
 

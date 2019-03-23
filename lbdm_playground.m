@@ -1,9 +1,9 @@
 % load('circledata.mat');
 clear;
 load('Orig.mat')
-rng(1234);
+rng(9999);
 
-[L, idx, D1, D2] = getSparseBipartite(fea, 1000, 3, 'uniform');
+[L, idx, D1, D2] = getSparseBipartite(fea, 2000, 20, 'uniform');
 [n,d] = size(L);
 k = 11;
 nlabel = 10;
@@ -28,16 +28,16 @@ X_0 = randn(d,k);
 
 
 
-clear opt
-opt.npass = 5;
-opt.batchsize = 1000;
-opt.stepsize_init = 1e2;
-tic;
-[X_sgd, info_sgd] = lbdm_sgd(L, k, X_0, opt);
-time.sgd = toc;
-label = landmark_cluster(X_sgd, nlabel, idx);
-label = bestMap(gnd, label);
-acc.sgd = sum(label == gnd) / n;
+% clear opt
+% opt.npass = 5;
+% opt.batchsize = 1000;
+% opt.stepsize_init = 1e2;
+% tic;
+% [X_sgd, info_sgd] = lbdm_sgd(L, k, X_0, opt);
+% time.sgd = toc;
+% label = landmark_cluster(X_sgd, nlabel, idx);
+% label = bestMap(gnd, label);
+% acc.sgd = sum(label == gnd) / n;
 
 
 clear opt;
@@ -45,6 +45,7 @@ opt.npass = 5;
 opt.batchsize = 1000;
 opt.stepsize_init = 1e2; % previous 1e2
 opt.stepsize_type = 'decay';
+opt.checkperiod = 10;
 tic;
 [X_hebb, info_hebb] = stochastic_hebbian(L, k, X_0, opt);
 time.hebb = toc;
@@ -76,19 +77,18 @@ bound = abs(norm(L*V, 'fro'));
 % plot
 figure;
 title('Convergence of Stochastic Gradient Descent');
-xlim([1,10]);
-xlabel('# passes through data');
+xlabel('iteration');
 ylabel('trace(X^TL^TLX)');
 % fprintf('hebbian khaet time: %.4f, accuracy: %.4f\n', time.khaet, acc.khaet);
-fprintf('hebbian time: %.4f, accuracy: %.4f\n', time.hebb, acc.hebb);
-fprintf('sgd time: %.4f, accuracy: %.4f\n', time.sgd, acc.sgd);
+% fprintf('sgd time: %.4f, accuracy: %.4f\n', time.sgd, acc.sgd);
 % fprintf('gd time: %.4f, accuracy: %.4f\n', time.gd, acc.gd);
+
+fprintf('hebbian time: %.4f, accuracy: %.4f\n', time.hebb, acc.hebb);
 fprintf('svd time: %.4f, accuracy: %.4f\n', time.svd, acc.svd);
 
 hold on;
 % plot(info_khaet.iter, info_khaet.cost, '.-', 'DisplayName', 'Hebbian khaet');
 
-plot(info_hebb.iter, info_hebb.cost, '.-', 'DisplayName', 'Hebbian');
 
 % reduce gd result
 % gd_resl = length([info_gd.metric]);
@@ -98,11 +98,12 @@ plot(info_hebb.iter, info_hebb.cost, '.-', 'DisplayName', 'Hebbian');
 % gd_metric = fliplr(gd_metric);
 % plot(1:length(gd_metric), gd_metric, '.-', 'DisplayName', 'GD');
 
-sgd_metric = [info_sgd.metric];
-sgd_metric(end) = [];
-plot(1:length(sgd_metric), sgd_metric, '.-', 'DisplayName', 'R-SGD');
+% sgd_metric = [info_sgd.metric];
+% sgd_metric(end) = [];
+% plot(1:length(sgd_metric), sgd_metric, '.-', 'DisplayName', 'R-SGD');
 
-plot(1:length([info_sgd.metric]), bound*ones(size([info_sgd.metric])), '--', 'DisplayName', 'SVD');
+plot(info_hebb.iter, info_hebb.cost, '.-', 'DisplayName', 'Hebbian');
+plot(info_hebb.iter, bound*ones(size(info_hebb.iter)), '--', 'DisplayName', 'SVD');
 
 legend('Location', 'SouthEast');
 hold off;
