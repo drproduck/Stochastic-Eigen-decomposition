@@ -1,10 +1,25 @@
-function [L, idx, D1, D2] = getSparseBipartite(fea, r, s, mode)
+function [L, idx, D1, D2, W] = getSparseBipartite(fea, r, s, mode, reps)
 
 % LBDM sparse bipatite graph
+
+% Refs:
 % Large-scale spectral clustering using diffusion coordinates on landmark-based bipartite graphs
 % http://aclweb.org/anthology/W18-1705
-% L: the graph
+
+% Args:
+% fea: n x d row-based matrix of feature vectors
+% r: number of landmarks to sample
+% s: number of landmarks distance to keep for each data point. Equivalent to constructing a s-NN
+% mode: whether kmeans, uniform sampling, or input should be used to select landmarks
+% reps: if mode == 'provided', use input landmarks
+
+% Returns;
+% L: the biparite Laplacian matrix = D1^{-1/2} W D2^{-1/2}
 % idx: locations of the nearest landmarks to each datapoint
+% D1: sparse diagonal matrix of row-sums of W
+% D2: sparse diagonal matrix of column-sums of W
+% W: the sparse affinity matrix
+
 
 [n,m] = size(fea);
 if strcmp(mode, 'kmeans')
@@ -20,6 +35,14 @@ if strcmp(mode, 'kmeans')
 elseif strcmp(mode, 'uniform')
 	reps = fea(randsample(n, r, false),:);
 	sigma = getSigma(fea);
+
+elseif strcmp(mode, 'provided')
+	if ~exist('reps', 'var') || isempty(reps) || size(reps, 1) ~= r
+			error('invalid landmark points provided');
+	else
+		% TODO: note here that for sequentially constructing matrix, this sigma is not universal.
+		sigma = getSigma(fea);
+	end
 
 end
 
@@ -50,3 +73,4 @@ D1 = sparse(1:n,1:n,d1.^(-0.5));
 D2 = sparse(1:r,1:r,d2.^(-0.5));
 L = D1*W*D2;
 
+end
