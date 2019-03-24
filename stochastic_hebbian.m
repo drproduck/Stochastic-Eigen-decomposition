@@ -44,7 +44,7 @@ saveiter = floor(maxiter / opt.checkperiod) + double(mod(maxiter,opt.checkperiod
 info.cost = zeros(saveiter, 1);
 info.iter = zeros(saveiter, 1);
 
-fprintf('iter     time [s]       batch cost          ETA\n');
+fprintf('   Iter    Time [s]     Batch Cost      ETA [s]\n');
 
 si = 1; % save iter increment
 loopstart = tic;
@@ -87,7 +87,7 @@ for epoch = 1:npass
 			info.iter(si) = global_t;
 			info.cost(si) = norm(Y, 'fro') / size(batch,2);
 			% info.cost(si) = norm(A*X, 'fro');
-			fprintf('%4d     %5f     %10e     %5f\n', global_t, ti, info.cost(si), eta);
+			fprintf('%4d/%d       %5.3f     %10.3e       %5.3f\n', global_t, maxiter, ti, info.cost(si), eta);
 			si = si + 1;
 			loopstart = tic;
 
