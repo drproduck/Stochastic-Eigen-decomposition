@@ -22,4 +22,4 @@ cd tools/;
 addpath(genpath(pwd));
 cd ..;
 
-setenv('EDITOR', 'vim')
+setenv('EDITOR', 'vim');

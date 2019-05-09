@@ -3,7 +3,11 @@ clear;
 load('Orig.mat')
 % rng(9999);
 
-%[L, idx, D1, D2] = getSparseBipartite(fea, 1000, 3, 'uniform');
+[L, idx, D1, D2] = getSparseBipartite(fea, 1000, 3, 'uniform');
+% fprintf('constructing full graph\n')
+% tic;
+% [L, idx] = getBipartite(fea, 1000, 3, 'uniform');
+% fprintf('done in %f seconds\n', toc)
 
 [n,d] = size(L);
 k = 11;
