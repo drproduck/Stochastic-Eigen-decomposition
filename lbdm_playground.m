@@ -1,9 +1,10 @@
 % load('circledata.mat');
 clear;
 load('Orig.mat')
-rng(9999);
+% rng(9999);
 
-[L, idx, D1, D2] = getSparseBipartite(fea, 2000, 20, 'uniform');
+%[L, idx, D1, D2] = getSparseBipartite(fea, 1000, 3, 'uniform');
+
 [n,d] = size(L);
 k = 11;
 nlabel = 10;
@@ -41,7 +42,7 @@ X_0 = randn(d,k);
 
 
 clear opt;
-opt.npass = 5;
+opt.npass = 1;
 opt.batchsize = 1000;
 opt.stepsize_init = 1e2; % previous 1e2
 opt.stepsize_type = 'decay';
@@ -71,7 +72,7 @@ label = landmark_cluster(V, nlabel, idx);
 label = bestMap(gnd, label);
 acc.svd = sum(label == gnd) / n;
 
-bound = abs(norm(L*V, 'fro'));
+bound = abs(norm(L*V, 'fro')) / n;
 
 
 % plot
@@ -108,10 +109,18 @@ plot(info_hebb.iter, bound*ones(size(info_hebb.iter)), '--', 'DisplayName', 'SVD
 legend('Location', 'SouthEast');
 hold off;
 
-function X = postProcessEmbedding(X, D2)
-X = D2 * X;
+% function X = postProcessEmbedding(X, D2)
+% X = D2 * X;
+% 
+% end
+
+function label = cluster(U, nlabel)
+
+U = U ./ vecnorm(U, 2);
+label = litekmeans(U, nlabels, 'Distance', 'cosine', 'MaxIter', 100, 'Replicates', 10);
 
 end
+
 
 function label = landmark_cluster(V, nlabel, idx)
 

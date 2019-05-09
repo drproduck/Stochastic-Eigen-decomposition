@@ -1,6 +1,6 @@
 % load('circledata.mat');
 clear;
-load('Orig.mat')
+load('dataset/poker.mat')
 rng(9999);
 
 n_repeat = 20;
@@ -11,9 +11,9 @@ svd.time = zeros(20, 1);
 svd.acc =zeros(20, 1);
 svd.loss = zeros(20, 1);
 
-k = 11;
-nlabel = 10;
-npass = 10;
+nlabel = max(gnd);
+k = nlabel + 1;
+npass = 1;
 
 
 for i = 1:n_repeat

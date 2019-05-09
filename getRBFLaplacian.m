@@ -1,11 +1,15 @@
 function L = getRBFLaplacian(fea, opt)
 
+% Given feature vector data fea of size n*m, compute:
+% W: the affinity matrix using Radial Basis Kernel
+% L: the normalized Laplacian matrix of W
+
 defaults.s = -1;
 defaults.reg = -1;
 defaults.normalize = 1;
 
 if ~exist('opt','var') || isempty(opt)
-	opt = struct()
+	opt = struct();
 
 end
 

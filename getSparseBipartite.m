@@ -28,9 +28,10 @@ if strcmp(mode, 'kmeans')
     'clustersample', 0.1);
 
 	%determine sigma
-	lbcount = hist(lb, 1:r);
-	cluster_sigma = sqrt(VAR ./ lbcount);
-	sigma = mean(cluster_sigma); 
+	% lbcount = hist(lb, 1:r);
+	% cluster_sigma = sqrt(VAR ./ lbcount);
+	% sigma = mean(cluster_sigma); 
+	sigma = getSigma(fea);
     
 elseif strcmp(mode, 'uniform')
 	reps = fea(randsample(n, r, false),:);

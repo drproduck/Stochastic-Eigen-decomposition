@@ -53,9 +53,7 @@ function colors = distinguishable_colors(n_colors,bg,func)
 % Example using the file exchange's 'colorspace':
 %   func = @(x) colorspace('RGB->Lab',x);
 %   c = distinguishable_colors(25,'w',func);
-
 % Copyright 2010-2011 by Timothy E. Holy
-
   % Parse the inputs
   if (nargin < 2)
     bg = [1 1 1];  % default white background
@@ -94,7 +92,6 @@ function colors = distinguishable_colors(n_colors,bg,func)
     lab = applycform(rgb,C);
     bglab = applycform(bg,C);
   end
-
   % If the user specified multiple background colors, compute distances
   % from the candidate colors to the background colors
   mindist2 = inf(size(rgb,1),1);
@@ -117,7 +114,6 @@ function colors = distinguishable_colors(n_colors,bg,func)
     lastlab = lab(index,:);  % prepare for next iteration
   end
 end
-
 function c = parsecolor(s)
   if ischar(s)
     c = colorstr2rgb(s);
@@ -127,7 +123,6 @@ function c = parsecolor(s)
     error('MATLAB:InvalidColorSpec','Color specification cannot be parsed.');
   end
 end
-
 function c = colorstr2rgb(c)
   % Convert a color string to an RGB value.
   % This is cribbed from Matlab's whitebg function.
