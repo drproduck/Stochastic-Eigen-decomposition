@@ -6,7 +6,7 @@ n_sets = 10;
 n_samples = 1000;
 
 % sigma list
-sigmas = 0.1:0.1:100;
+sigmas = 0.1:0.1:200;
 % final table of sigma
 
 table = size(10, length(sigmas));
@@ -16,7 +16,7 @@ for i = 1:10
 	A = EuDist2(fea(samples,:));
 	for sigma = sigmas
 		L = exp(- A / (2*sigma^2));
-		D = sum(A,2);
+		D = sum(L,2);
 		D = sparse(1:n_samples,1:n_samples,D.^(-0.5));
 		L = D*L*D;
 		[u,s] = svds(L, 11);
