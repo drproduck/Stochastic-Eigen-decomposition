@@ -12,9 +12,11 @@ sigmas = 0.1:0.1:200;
 table = size(10, length(sigmas));
 
 for i = 1:10
+	fprintf('sample %d\n', i)
 	samples = randsample(n, n_samples);
 	A = EuDist2(fea(samples,:));
 	for sigma = sigmas
+		fprintf('sigma %f\n', sigma)
 		L = exp(- A / (2*sigma^2));
 		D = sum(L,2);
 		D = sparse(1:n_samples,1:n_samples,D.^(-0.5));
@@ -30,4 +32,5 @@ for i = 1:10
 end
 
 sigma_acc = mean(table, 1);
+save('mnist_sigma.mat', 'table', 'sigma_acc');
 plot(sigma_acc);
