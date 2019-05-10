@@ -26,7 +26,7 @@ opt.checkperiod = 10;
 tic;
 [X_hebb, info_hebb] = stochastic_hebbian(L, k, X_0, opt);
 time.hebb = toc;
-scatter2d(X_hebb, gnd(idx))
+% scatter2d(X_hebb, gnd(idx))
 label = landmark_cluster(X_hebb, nlabel, idx);
 label = bestMap(gnd, label);
 acc.hebb = sum(label == gnd) / n;
