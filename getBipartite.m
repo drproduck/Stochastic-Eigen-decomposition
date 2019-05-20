@@ -1,4 +1,4 @@
-function [L, idx] = getBipartite(fea, n_landmarks)
+function [L, idx] = getBipartite(fea, n_landmarks, sigma)
 
 n = size(fea, 1);
 idx = randsample(n, n_landmarks);
@@ -7,9 +7,11 @@ landmarks = fea(idx, :);
 
 W = pdist2(fea, landmarks, 'squaredeuclidean');
 
-sigma = getSigma(fea);
+if ~exist('sigma', 'var')
+	sigma = getSigma(fea);
+end
 
-W = exp(- W / (2*sigma^2));
+W = exp(- W ./ (2*sigma^2));
 
 D1 = sum(W, 2);
 D2 = sum(W, 1);
