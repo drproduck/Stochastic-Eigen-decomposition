@@ -1,4 +1,5 @@
-% load('twomoons_sk.mat')
+clear;
+load('pend.mat');
 n_labels = length(unique(gnd));
 n = length(fea);
 % data normalization
@@ -7,17 +8,18 @@ n = length(fea);
 % fea = (fea - mean(fea)) ./ feastd;
 
 % number of sets of samples
-n_sets = 1000;
+n_sets = 100;
 % number of samples in each set
-n_samples = 20;
-sigma_uniform = 0.2; % the sigma is important! default is 1
-sigma_nystrom = 1.0;
+n_samples = 500;
+sigma = getSigma(fea);
+sigma_rff = 12.0;
 
 % final variables
 sample_idx = zeros(n_sets, n_samples);
 
 uniform_accuracy = zeros(n_sets, 1);
 nystrom_accuracy = zeros(n_sets, 1);
+rff_accuracy = zeros(n_sets, 1);
 
 for i = 1:n_sets
 
@@ -26,21 +28,26 @@ for i = 1:n_sets
 	nonsamples = setdiff(1:n, samples);
 	sample_idx(i, :) = samples;
 	W = EuDist2(fea, fea(samples,:), 0);
-	W_uniform = exp(- W ./ (2*sigma_uniform^2));
+	W_uniform = exp(- W ./ (2*sigma^2));
 	acc = uniform_approx(W_uniform, samples, gnd, n_labels);
 	uniform_accuracy(i) = acc;
 	fprintf('uniform acc %f\n', acc);
 
-	W_nystrom = exp(- W ./ (2*sigma_nystrom^2));
+	W_nystrom = exp(- W ./ (2*sigma^2));
 	acc = nystrom_approx(W_nystrom, samples, nonsamples, gnd, n_labels);
 	nystrom_accuracy(i) = acc;
 	fprintf('nystrom acc %f\n', acc);
+
+	%acc = rff_approx(fea, sigma_rff, n_samples, gnd, n_labels);
+	%rff_accuracy(i) = acc;
+	%fprintf('fourier feature acc %f\n', acc);
 
 end
 
 histogram(uniform_accuracy, 100, 'FaceColor', 'b')
 hold on
 histogram(nystrom_accuracy, 100, 'FaceColor', 'r')
+histogram(rff_accuracy, 100, 'FaceColor', 'g')
 hold off
 description = 'twomoons_sk, sigma=0.2, comparison of bipartite and nystrom accuracy for the same samples';
 save('twomoons_uniform_vs_nystrom.mat', 'sample_idx', 'uniform_accuracy', 'nystrom_accuracy', 'description');
@@ -82,10 +89,30 @@ U = [A; B'] * Asi * U * pinv(sqrt(S));
 
 gndperm = gnd([samples', nonsamples]);
 U = U(:,1:n_labels);
-% u(:,1) = [];
+U(:,1) = [];
 U = U ./ vecnorm(U, 2);
 labels = kmeans(U, n_labels);
 labels = bestMap(gndperm, labels);
 acc = sum(labels == gndperm) / n;
+
+end
+
+function acc = rff_approx(fea, sigma, fourier_dim, gnd, n_labels)
+n = size(fea, 1);
+data_dim = size(fea, 2);
+r = sigma * randn(data_dim, fourier_dim);
+tmp = fea * r;
+W = [cos(tmp), sin(tmp)] ./ sqrt(fourier_dim);
+D = W * sum(W', 2);
+
+% approximate Laplacian is D^(-1/2)WWTD(-1/2)
+D = sparse(1:n,1:n,D.^(-0.5));
+L = D*W;
+[U,S] = svds(L, n_labels);
+U(:,1) = [];
+U = U ./ vecnorm(U, 2);
+labels = kmeans(U, n_labels);
+labels = bestMap(gnd, labels);
+acc = sum(labels == gnd) / n;
 
 end

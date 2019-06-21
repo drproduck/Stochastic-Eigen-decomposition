@@ -1,5 +1,6 @@
-load('twomoons_sk.mat')
-k = 2;
+% load('twomoons_sk.mat')
+load('usps.mat')
+k = length(unique(gnd));
 n = size(fea, 1);
 n_sample = 20;
 m = n - n_sample;

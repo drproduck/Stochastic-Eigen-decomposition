@@ -1,4 +1,6 @@
 % load('twomoons_sk.mat')
+clear;
+load('usps.mat');
 n_labels = length(unique(gnd));
 n = length(fea);
 % data normalization
@@ -7,11 +9,10 @@ n = length(fea);
 % fea = (fea - mean(fea)) ./ feastd;
 
 % number of sets of samples
-n_sets = 1000;
+n_sets = 100;
 % number of samples in each set
-n_samples = 20;
-sigma_uniform = 0.2; % the sigma is important! default is 1
-sigma_nystrom = 1.0;
+n_samples = 500;
+sigma = getSigma(fea);
 
 % final variables
 sample_idx = zeros(n_sets, n_samples);
@@ -26,12 +27,12 @@ for i = 1:n_sets
 	nonsamples = setdiff(1:n, samples);
 	sample_idx(i, :) = samples;
 	W = EuDist2(fea, fea(samples,:), 0);
-	W_uniform = exp(- W ./ (2*sigma_uniform^2));
+	W_uniform = exp(- W ./ (2*sigma^2));
 	acc = uniform_approx(W_uniform, samples, gnd, n_labels);
 	uniform_accuracy(i) = acc;
 	fprintf('uniform acc %f\n', acc);
 
-	W_nystrom = exp(- W ./ (2*sigma_nystrom^2));
+	W_nystrom = exp(- W ./ (2*sigma^2));
 	acc = nystrom_approx(W_nystrom, samples, nonsamples, gnd, n_labels);
 	nystrom_accuracy(i) = acc;
 	fprintf('nystrom acc %f\n', acc);
@@ -54,7 +55,7 @@ D1 = sparse(1:n,1:n,D1.^(-0.5));
 D2 = sparse(1:n_samples,1:n_samples,D2.^(-0.5));
 L = D1*W*D2;
 [u,s] = svds(L, n_labels);
-u(:,1) = [];
+% u(:,1) = [];
 u = u ./ vecnorm(u, 2);
 labels = kmeans(u, n_labels);
 labels = bestMap(gnd, labels);
